@@ -1,10 +1,25 @@
-import { PrismaClient } from '@/src/generated' // 👈 Point directly to your custom output folder
+import { PrismaClient } from '@/src/generated'
 import { PrismaPg } from '@prisma/adapter-pg'
 import pg from 'pg'
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+let connectionString = process.env.DATABASE_URL;
+if (connectionString) {
+  // Strip channel_binding=require which fails on serverless platforms
+  connectionString = connectionString.replace(/&?channel_binding=require/, '');
+}
+
+const pool = new pg.Pool({ connectionString })
 const adapter = new PrismaPg(pool)
 
-export const prisma = new PrismaClient({ adapter })
+// Prevent multiple instances of Prisma Client in development / serverless hot-reloads
+declare global {
+  var prisma: PrismaClient | undefined;
+}
 
-export default prisma
+export const prisma = global.prisma || new PrismaClient({ adapter });
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma;
+}
+
+export default prisma;
