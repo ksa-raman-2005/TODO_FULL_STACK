@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  /* 🌟 Move it to the top level here */
+  allowedDevOrigins: ['stale-paths-end.loca.lt'], 
 };
 
 export default nextConfig;
